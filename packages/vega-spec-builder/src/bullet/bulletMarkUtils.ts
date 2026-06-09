@@ -66,8 +66,6 @@ export const addMarks = produce<Mark[], [BulletSpecOptions]>((marks, bulletOptio
     bulletMark.marks?.push(getBulletMarkValueLabel(bulletOptions));
   }
 
-  // Add hover area for tooltips when thresholds or track exist
-  // (tooltips are always added to metric bar and target line, but hover area captures events when present)
   const hasThresholds = Array.isArray(bulletOptions.thresholds) && bulletOptions.thresholds.length > 0;
   const hasTrack = bulletOptions.track === true;
 
@@ -79,12 +77,6 @@ export const addMarks = produce<Mark[], [BulletSpecOptions]>((marks, bulletOptio
 });
 
 export function getBulletMarkRect(bulletOptions: BulletSpecOptions): Mark {
-  //The vertical positioning is calculated starting at the bulletgroupheight
-  //and then subtracting two times the bullet height to center the bullet bar
-  //in the middle of the threshold. The 3 is subtracted because the bulletgroup height
-  //starts the bullet below the threshold area.
-  //Additionally, the value of the targetValueLabelHeight is subtracted if the target value label is shown
-  //to make sure that the bullet bar is not drawn over the target value label.
   const bulletMarkRectEncodeUpdateYSignal =
     bulletOptions.showTarget && bulletOptions.showTargetValue
       ? 'bulletGroupHeight - targetValueLabelHeight - 3 - 2 * bulletHeight'
@@ -125,8 +117,6 @@ export function getBulletMarkRect(bulletOptions: BulletSpecOptions): Mark {
 export function getBulletMarkTarget(bulletOptions: BulletSpecOptions): Mark {
   const solidColor = getColorValue('gray-900', bulletOptions.colorScheme);
 
-  //When the target value label is shown, we must subtract the height of the target value label
-  //to make sure that the target line is not drawn over the target value label
   const bulletMarkTargetEncodeUpdateY =
     bulletOptions.showTarget && bulletOptions.showTargetValue
       ? 'bulletGroupHeight - targetValueLabelHeight - targetHeight'
@@ -181,10 +171,6 @@ export function getBulletMarkLabel(bulletOptions: BulletSpecOptions): Mark {
   return bulletMarkLabel;
 }
 
-/**
- * Gets the text production rules for a bullet value label.
- * Handles shortNumber, shortCurrency, and d3 format strings consistently.
- */
 export function getBulletValueText(
   numberFormat: string,
   datumProperty: string
@@ -197,12 +183,11 @@ export function getBulletMarkValueLabel(bulletOptions: BulletSpecOptions): Mark 
   const defaultColor = getColorValue(bulletOptions.color, bulletOptions.colorScheme);
   const solidColor = getColorValue('gray-900', bulletOptions.colorScheme);
   const encodeUpdateSignalWidth = bulletOptions.direction === 'column' ? 'width' : 'bulletGroupWidth';
-  const fillExpr =
-    bulletOptions.thresholdBarColor && (bulletOptions.thresholds?.length ?? 0) > 0
-      ? `datum.barColor === '${defaultColor}' ? '${solidColor}' : datum.barColor`
-      : `'${solidColor}'`;
+  // Value label colour is always solidColor (gray-900) regardless of thresholdBarColor.
+  // thresholdBarColor controls bar fill only — not the label text.
+  // See: https://github.com/adobe/react-spectrum-charts/issues/701
+  const fillExpr = `'${solidColor}'`;
 
-  // Use metricLabel field if provided, otherwise format the metric value
   const textValue = bulletOptions.metricLabel
     ? [{ field: bulletOptions.metricLabel }]
     : getBulletValueText(bulletOptions.numberFormat || 'standardNumber', bulletOptions.metric);
@@ -230,7 +215,6 @@ export function getBulletMarkTargetValueLabel(bulletOptions: BulletSpecOptions):
   const solidColor = getColorValue('gray-900', bulletOptions.colorScheme);
   const valueExpr = `datum.${bulletOptions.target}`;
 
-  // Use targetLabel field if provided, otherwise format the target value
   const textSignal = bulletOptions.targetLabel
     ? `${valueExpr} != null ? 'Target: ' + datum.${bulletOptions.targetLabel} : 'No Target'`
     : `${valueExpr} != null ? 'Target: ' + (${buildFormatSignal(valueExpr, bulletOptions.numberFormat || 'standardNumber')}) : 'No Target'`;
@@ -242,9 +226,7 @@ export function getBulletMarkTargetValueLabel(bulletOptions: BulletSpecOptions):
     from: { data: 'bulletGroups' },
     encode: {
       enter: {
-        text: {
-          signal: textSignal,
-        },
+        text: { signal: textSignal },
         align: { value: 'center' },
         baseline: { value: 'top' },
         fill: { value: `${solidColor}` },
@@ -260,8 +242,6 @@ export function getBulletMarkTargetValueLabel(bulletOptions: BulletSpecOptions):
 }
 
 export function getBulletMarkThreshold(bulletOptions: BulletSpecOptions): Mark {
-  // Vertically center the threshold bar by offsetting from bulletGroupHeight.
-  // Subtract 3 for alignment and targetValueLabelHeight if the label is shown.
   const baseHeightSignal = 'bulletGroupHeight - 3 - bulletThresholdHeight';
   const encodeUpdateYSignal =
     bulletOptions.showTarget && bulletOptions.showTargetValue
@@ -284,12 +264,8 @@ export function getBulletMarkThreshold(bulletOptions: BulletSpecOptions): Mark {
         fillOpacity: { value: 0.2 },
       },
       update: {
-        x: {
-          signal: "isDefined(datum.thresholdMin) ? scale('xscale', datum.thresholdMin) : 0",
-        },
-        x2: {
-          signal: "isDefined(datum.thresholdMax) ? scale('xscale', datum.thresholdMax) : width",
-        },
+        x: { signal: "isDefined(datum.thresholdMin) ? scale('xscale', datum.thresholdMin) : 0" },
+        x2: { signal: "isDefined(datum.thresholdMax) ? scale('xscale', datum.thresholdMax) : width" },
         height: { signal: 'bulletThresholdHeight' },
         y: { signal: encodeUpdateYSignal },
       },
@@ -298,12 +274,6 @@ export function getBulletMarkThreshold(bulletOptions: BulletSpecOptions): Mark {
   return bulletMarkThreshold;
 }
 
-/**
- * Returns the mark for the full hover area of a bullet
- * Covers the entire bullet area including target line, metric bar, and threshold
- * @param bulletOptions
- * @returns
- */
 function getHoverAreaSignalsForThresholds(options: BulletSpecOptions): { y: string; height: string } {
   if (options.showTarget) {
     const y = options.showTargetValue
@@ -311,7 +281,6 @@ function getHoverAreaSignalsForThresholds(options: BulletSpecOptions): { y: stri
       : 'bulletGroupHeight - targetHeight';
     return { y, height: 'targetHeight' };
   }
-
   const y = options.showTargetValue
     ? 'bulletGroupHeight - targetValueLabelHeight - 3 - bulletThresholdHeight'
     : 'bulletGroupHeight - 3 - bulletThresholdHeight';
@@ -365,7 +334,6 @@ export function getBulletHoverArea(bulletOptions: BulletSpecOptions): Mark {
 export function getBulletTrack(bulletOptions: BulletSpecOptions): Mark {
   const trackColor = getColorValue('gray-200', bulletOptions.colorScheme);
   const trackWidth = bulletOptions.direction === 'column' ? 'width' : 'bulletGroupWidth';
-  // Subtracting 20 accounts for the space used by the target value label
   const trackY =
     bulletOptions.showTarget && bulletOptions.showTargetValue
       ? 'bulletGroupHeight - 3 - 2 * bulletHeight - 20'
@@ -408,32 +376,17 @@ export function getBulletLabelAxesLeft(labelOffset): Axis {
   };
 }
 
-/**
- * Builds a format signal expression for the given value expression and numberFormat.
- * This would make sense as a re-usable utility, but keeping it here for now since bullet is alpha
- * and we don't have another component that needs the utility yet.
- */
 function buildFormatSignal(valueExpr: string, numberFormat: string): string {
-  if (numberFormat === 'shortNumber') {
-    return `formatShortNumber(${valueExpr})`;
-  }
-  if (numberFormat === 'shortCurrency') {
+  if (numberFormat === 'shortNumber') return `formatShortNumber(${valueExpr})`;
+  if (numberFormat === 'shortCurrency')
     return String.raw`abs(${valueExpr}) >= 1000 ? upper(replace(format(${valueExpr}, '$.3~s'), /(\d+)G/, '$1B')) : format(${valueExpr}, '$')`;
-  }
-  if (numberFormat === 'currency') {
-    return `format(${valueExpr}, '$,.2f')`;
-  }
-  if (numberFormat === 'standardNumber') {
-    return `format(${valueExpr}, ',')`;
-  }
-  // Default: use d3 format string
+  if (numberFormat === 'currency') return `format(${valueExpr}, '$,.2f')`;
+  if (numberFormat === 'standardNumber') return `format(${valueExpr}, ',')`;
   return `format(${valueExpr}, '${numberFormat}')`;
 }
 
 export function getBulletLabelAxesRight(bulletOptions: BulletSpecOptions, labelOffset): Axis {
   const valueExpr = `info(data('table')[datum.index * (length(data('table')) - 1)].${bulletOptions.metric})`;
-
-  // Use metricLabel field if provided, otherwise format the metric value
   const textSignal = bulletOptions.metricLabel
     ? `data('table')[datum.index * (length(data('table')) - 1)].${bulletOptions.metricLabel}`
     : `${valueExpr} != null ? (${buildFormatSignal(valueExpr, bulletOptions.numberFormat || 'standardNumber')}) : ''`;
@@ -445,21 +398,12 @@ export function getBulletLabelAxesRight(bulletOptions: BulletSpecOptions, labelO
     labelOffset: labelOffset,
     labelPadding: 10,
     domain: false,
-    encode: {
-      labels: {
-        update: {
-          text: {
-            signal: textSignal,
-          },
-        },
-      },
-    },
+    encode: { labels: { update: { text: { signal: textSignal } } } },
   };
 }
 
 export function getBulletScaleAxes(bulletOptions: BulletSpecOptions): Axis {
   const formatSignal = buildFormatSignal('datum.value', bulletOptions.numberFormat || 'standardNumber');
-
   return {
     labelOffset: 2,
     scale: 'xscale',
@@ -469,16 +413,7 @@ export function getBulletScaleAxes(bulletOptions: BulletSpecOptions): Axis {
     domain: false,
     tickCount: 5,
     offset: { signal: 'axisOffset' },
-    encode: {
-      labels: {
-        update: {
-          text: {
-            // Wrap formatSignal in parens to handle ternary expressions
-            signal: `(${formatSignal})`,
-          },
-        },
-      },
-    },
+    encode: { labels: { update: { text: { signal: `(${formatSignal})` } } } },
   };
 }
 
@@ -486,7 +421,6 @@ export const addAxes = produce<Axis[], [BulletSpecOptions]>((axes, bulletOptions
   if (bulletOptions.metricAxis && bulletOptions.direction === 'column' && !bulletOptions.showTargetValue) {
     axes.push(getBulletScaleAxes(bulletOptions));
   }
-
   if (bulletOptions.labelPosition === 'side' && bulletOptions.direction === 'column') {
     const labelOffset = bulletOptions.showTargetValue && bulletOptions.showTarget ? -8 : 2;
     axes.push(getBulletLabelAxesLeft(labelOffset), getBulletLabelAxesRight(bulletOptions, labelOffset));
