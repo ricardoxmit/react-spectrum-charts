@@ -25,7 +25,6 @@ test-report.xml
 
 # AI
 cursor
-.cursor
 .claude/commands/private
 .claude/settings.local.json
 
@@ -36,3 +35,5 @@ cursor
 tmp/
 
 .scout/
+# demo-only ignores
+llm/

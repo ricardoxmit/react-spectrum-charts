@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Do not read, reference, or use CLAUDE.md or .claude/. Derive all architectural understanding from the source code directly.
