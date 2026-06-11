@@ -205,7 +205,7 @@ describe('getBulletMarkValueLabel', () => {
   });
 
   describe('getBulletMarkValueLabel threshold color logic', () => {
-    test('Uses barColor field for label when thresholdBarColor is true', () => {
+    test('Uses gray-900 for label regardless of thresholdBarColor', () => {
       const options = {
         ...sampleOptionsColumn,
         thresholdBarColor: true,
@@ -213,7 +213,7 @@ describe('getBulletMarkValueLabel', () => {
       };
       const labelMark = getBulletMarkValueLabel(options);
       expect(labelMark.encode?.enter?.fill).toEqual({
-        signal: "datum.barColor === 'green' ? '#131313' : datum.barColor",
+        signal: "'#131313'",
       });
     });
 

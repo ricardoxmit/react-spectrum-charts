@@ -22,7 +22,7 @@ jest.mock('@spectrum-charts/locales', () => {
 
 import { getLocale } from '@spectrum-charts/locales';
 
-import { formatBigNumber } from './bigNumberFormatUtils';
+import { formatBigNumber, formatBigNumberDelta, getBigNumberDelta } from './bigNumberFormatUtils';
 
 const mockGetLocale = getLocale as jest.MockedFunction<typeof getLocale>;
 
@@ -59,6 +59,45 @@ describe('Big Number format utility functions', () => {
     test('should format when locale is de-DE and numberFormat is currency format', () => {
       const formattedString = formatBigNumber(1234.56, 'linear', CURRENCY_FORMAT, DE_NUMBER_LOCALE);
       expect(formattedString).toBe('1.234,56 €');
+    });
+  });
+
+  describe('getBigNumberDelta', () => {
+    test('should return delta from the last datum', () => {
+      expect(getBigNumberDelta([{ delta: 1.2 }, { delta: 4.5 }], 'delta')).toBe(4.5);
+    });
+
+    test('should return undefined when data is empty', () => {
+      expect(getBigNumberDelta([], 'delta')).toBeUndefined();
+    });
+
+    test('should return undefined when delta value is not a number', () => {
+      expect(getBigNumberDelta([{ delta: '4.5' }], 'delta')).toBeUndefined();
+    });
+
+    test('should return undefined when delta key is missing on last datum', () => {
+      expect(getBigNumberDelta([{ value: 100 }], 'delta')).toBeUndefined();
+    });
+  });
+
+  describe('formatBigNumberDelta', () => {
+    const US_NUMBER_LOCALE = actualGetLocale('en-US').number;
+    const DE_NUMBER_LOCALE = actualGetLocale('de-DE').number;
+
+    test('should format positive delta with plus sign and percent suffix', () => {
+      expect(formatBigNumberDelta(4.5, US_NUMBER_LOCALE)).toBe('+4.5%');
+    });
+
+    test('should format negative delta with minus sign and percent suffix', () => {
+      expect(formatBigNumberDelta(-2.3, US_NUMBER_LOCALE)).toBe('-2.3%');
+    });
+
+    test('should format zero delta without a sign', () => {
+      expect(formatBigNumberDelta(0, US_NUMBER_LOCALE)).toBe('0.0%');
+    });
+
+    test('should format using locale decimal separator', () => {
+      expect(formatBigNumberDelta(4.5, DE_NUMBER_LOCALE)).toBe('+4,5%');
     });
   });
 

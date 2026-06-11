@@ -119,6 +119,32 @@ const CompactFormatStory: StoryFn<typeof BigNumber> = (args): ReactElement => {
   );
 };
 
+const DeltaPositiveStory: StoryFn<typeof BigNumber> = (args): ReactElement => {
+  const chartProps = useChartProps({
+    data: [{ value: 1284, delta: 4.5 }],
+    width: 350,
+    height: 350,
+  });
+  return (
+    <Chart {...chartProps}>
+      <BigNumber {...args} />
+    </Chart>
+  );
+};
+
+const DeltaNegativeStory: StoryFn<typeof BigNumber> = (args): ReactElement => {
+  const chartProps = useChartProps({
+    data: [{ value: 892, delta: -2.3 }],
+    width: 350,
+    height: 350,
+  });
+  return (
+    <Chart {...chartProps}>
+      <BigNumber {...args} />
+    </Chart>
+  );
+};
+
 const BasicHorizontal = bindWithProps(BigNumberLargeStory);
 BasicHorizontal.args = {
   children: undefined,
@@ -266,6 +292,24 @@ SparklineAndIconHorizontalMedium.args = {
   label: 'Visitors',
 };
 
+const DeltaPositive = bindWithProps(DeltaPositiveStory);
+DeltaPositive.args = {
+  children: undefined,
+  dataKey: 'value',
+  deltaKey: 'delta',
+  orientation: 'horizontal',
+  label: 'Active Users',
+};
+
+const DeltaNegative = bindWithProps(DeltaNegativeStory);
+DeltaNegative.args = {
+  children: undefined,
+  dataKey: 'value',
+  deltaKey: 'delta',
+  orientation: 'horizontal',
+  label: 'Active Users',
+};
+
 export {
   BasicHorizontal,
   BasicVertical,
@@ -284,4 +328,6 @@ export {
   UndefinedData,
   SparklineAndIconHorizontalSmall,
   SparklineAndIconHorizontalMedium,
+  DeltaPositive,
+  DeltaNegative,
 };

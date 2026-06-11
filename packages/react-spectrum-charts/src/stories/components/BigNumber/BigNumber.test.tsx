@@ -11,6 +11,8 @@
  */
 import { Icon } from '@adobe/react-spectrum';
 
+import { getColorValue } from '@spectrum-charts/themes';
+
 import { Chart } from '../../../Chart';
 import { Line } from '../../../components';
 import { BigNumber } from '../../../rc';
@@ -22,6 +24,8 @@ import {
   BasicVertical,
   CompactFormat,
   CurrencyFormat,
+  DeltaNegative,
+  DeltaPositive,
   IconHorizontal,
   IconVertical,
   PercentageFormat,
@@ -262,6 +266,24 @@ describe('BigNumber', () => {
       render(<SparklineMethodLast {...SparklineMethodLast.args} method="avg" />);
       const val = await screen.findByText('50');
       expect(val).toBeInTheDocument();
+    });
+  });
+
+  describe('BigNumber delta support', () => {
+    test('DeltaPositive renders signed delta with positive color', async () => {
+      render(<DeltaPositive {...DeltaPositive.args} />);
+      const delta = await screen.findByText('+4.5%');
+      expect(delta).toBeInTheDocument();
+      expect(delta).toHaveClass('big-number-delta');
+      expect(delta.style.color).toBe(getColorValue('positive', 'light'));
+    });
+
+    test('DeltaNegative renders signed delta with negative color', async () => {
+      render(<DeltaNegative {...DeltaNegative.args} />);
+      const delta = await screen.findByText('-2.3%');
+      expect(delta).toBeInTheDocument();
+      expect(delta).toHaveClass('big-number-delta');
+      expect(delta.style.color).toBe(getColorValue('negative', 'light'));
     });
   });
 

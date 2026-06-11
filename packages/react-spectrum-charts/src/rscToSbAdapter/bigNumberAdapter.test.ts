@@ -35,6 +35,10 @@ describe('getBigNumberOptions()', () => {
     const options = getBigNumberOptions({ ...basicBigNumberProps, numberFormat: 'currency' });
     expect(options).toHaveProperty('numberFormat', 'currency');
   });
+  it('should pass through deltaKey when provided', () => {
+    const options = getBigNumberOptions({ ...basicBigNumberProps, deltaKey: 'delta' });
+    expect(options).toHaveProperty('deltaKey', 'delta');
+  });
   it('should not add props that are not provided', () => {
     const options = getBigNumberOptions(basicBigNumberProps);
     expect(options).not.toHaveProperty('numberFormat');
