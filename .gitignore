@@ -34,6 +34,4 @@ cursor
 # catch all for temporary outputs
 tmp/
 
-.scout/
-# demo-only ignores
-llm/
+.scout/llm/
