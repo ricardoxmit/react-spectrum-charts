@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+# react-spectrum-charts conventions
+
+## Tooling
+- Use yarn. Never npm or pnpm.
+- Node 20 (per .nvmrc).
+- Tests: Jest with TZ=UTC. Run targeted: `yarn test --testPathPattern=<component>`.
+- Storybook on port 6009 (`yarn storybook`).
+
+## Code
+- Every new file needs the Apache 2.0 copyright header. Run `yarn copyrights` if unsure.
+- Follow existing patterns. If you'd introduce a new pattern, ask first.
+
+## Type 1 props (plain-value props on existing components)
+- Update the type in BOTH `vega-spec-builder` AND `vega-spec-builder-s2` for S2 parity.
+- Type 1 props flow through the adapter spread — no adapter change needed.
+- Update the React component, format utils (with tests), and a Storybook story.
