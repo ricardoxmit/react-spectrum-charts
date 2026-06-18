@@ -21,6 +21,7 @@ export interface BigNumberOptions {
   orientation: Orientation;
   label: string;
   dataKey: string;
+  deltaKey?: string;
   numberFormat?: string;
   numberType?: BigNumberNumberType;
   method?: BigNumberMethod;

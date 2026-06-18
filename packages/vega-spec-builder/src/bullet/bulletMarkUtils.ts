@@ -194,13 +194,9 @@ export function getBulletValueText(
 }
 
 export function getBulletMarkValueLabel(bulletOptions: BulletSpecOptions): Mark {
-  const defaultColor = getColorValue(bulletOptions.color, bulletOptions.colorScheme);
   const solidColor = getColorValue('gray-900', bulletOptions.colorScheme);
   const encodeUpdateSignalWidth = bulletOptions.direction === 'column' ? 'width' : 'bulletGroupWidth';
-  const fillExpr =
-    bulletOptions.thresholdBarColor && (bulletOptions.thresholds?.length ?? 0) > 0
-      ? `datum.barColor === '${defaultColor}' ? '${solidColor}' : datum.barColor`
-      : `'${solidColor}'`;
+  const fillExpr = `'${solidColor}'`;
 
   // Use metricLabel field if provided, otherwise format the metric value
   const textValue = bulletOptions.metricLabel

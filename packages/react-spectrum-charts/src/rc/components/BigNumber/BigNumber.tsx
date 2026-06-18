@@ -12,6 +12,7 @@
 import { CSSProperties, FC, cloneElement } from 'react';
 
 import { Flex, FlexProps, IconProps } from '@adobe/react-spectrum';
+import { getColorValue } from '@spectrum-charts/themes';
 import { getLocale } from '@spectrum-charts/locales';
 import { BigNumberMethod, ChartData, Orientation } from '@spectrum-charts/vega-spec-builder';
 
@@ -20,7 +21,7 @@ import { Line } from '../../../components';
 import { BigNumberProps, LineProps, RscChartProps } from '../../../types';
 import { sanitizeBigNumberChildren } from '../../../utils';
 import './BigNumber.css';
-import { formatBigNumber } from './bigNumberFormatUtils';
+import { formatBigNumber, formatBigNumberDelta, getBigNumberDelta } from './bigNumberFormatUtils';
 
 // We expose this as the external big number, but all we do is take the props from it and pass them to our internal version alongside RscChartProps
 const BigNumber: FC<BigNumberProps> = () => {
@@ -34,6 +35,7 @@ const BigNumber: FC<BigNumberProps> = () => {
  */
 const BigNumberInternal: FC<BigNumberProps & { rscChartProps: RscChartProps }> = ({
   dataKey,
+  deltaKey,
   label,
   numberFormat,
   children,
@@ -43,10 +45,13 @@ const BigNumberInternal: FC<BigNumberProps & { rscChartProps: RscChartProps }> =
   numberType = 'linear',
   method = 'last',
 }) => {
-  const { chartWidth, chartHeight, locale, data } = rscChartProps;
+  const { chartWidth, chartHeight, locale, data, colorScheme } = rscChartProps;
   const bigNumberValue = getBigNumberValue(data, dataKey, method);
   const numberLocale = getLocale(locale).number;
   const formattedValue = formatBigNumber(bigNumberValue, numberType, numberFormat, numberLocale);
+  const deltaValue = deltaKey ? getBigNumberDelta(data, deltaKey) : undefined;
+  const formattedDelta =
+    deltaValue !== undefined ? formatBigNumberDelta(deltaValue, numberLocale) : undefined;
   const lineElements = sanitizeBigNumberChildren(children);
 
   let lineProps: LineProps | undefined;
@@ -60,6 +65,17 @@ const BigNumberInternal: FC<BigNumberProps & { rscChartProps: RscChartProps }> =
 
   const labelStyle: CSSProperties = { fontSize: labelSize, textAlign };
   const valueStyle: CSSProperties = { fontSize: valueSize, textAlign };
+  const deltaStyle: CSSProperties = {
+    fontSize: labelSize,
+    textAlign,
+    color: getDeltaColor(deltaValue, colorScheme),
+  };
+
+  const deltaElement = formattedDelta ? (
+    <p style={deltaStyle} className="big-number-delta">
+      {formattedDelta}
+    </p>
+  ) : null;
 
   return (
     <Flex alignItems={'center'} justifyContent={'center'} direction={direction}>
@@ -90,6 +106,7 @@ const BigNumberInternal: FC<BigNumberProps & { rscChartProps: RscChartProps }> =
               <p style={valueStyle} className="big-number-data">
                 {formattedValue}
               </p>
+              {deltaElement}
               <Flex gap={'size-50'} justifyContent={'center'}>
                 <Flex direction={'column'} justifyContent={'center'}>
                   {cloneElement(icon, { size: iconSize, marginTop: '1px' })}
@@ -104,6 +121,7 @@ const BigNumberInternal: FC<BigNumberProps & { rscChartProps: RscChartProps }> =
               <p style={valueStyle} className="big-number-data">
                 {formattedValue}
               </p>
+              {deltaElement}
               <p style={labelStyle} className="big-number-label">
                 {label}
               </p>
@@ -240,6 +258,19 @@ function getIconSize(textSize: CSSProperties['fontSize']): IconProps['size'] {
     return 'XL';
   }
   return 'XXL';
+}
+
+function getDeltaColor(deltaValue: number | undefined, colorScheme: 'light' | 'dark'): string | undefined {
+  if (deltaValue === undefined) {
+    return undefined;
+  }
+  if (deltaValue > 0) {
+    return getColorValue('positive', colorScheme);
+  }
+  if (deltaValue < 0) {
+    return getColorValue('negative', colorScheme);
+  }
+  return undefined;
 }
 
 /**

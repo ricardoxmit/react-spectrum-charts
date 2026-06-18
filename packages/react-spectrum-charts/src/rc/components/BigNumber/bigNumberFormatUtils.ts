@@ -14,7 +14,25 @@ import { numberFormatLocale } from 'vega-format';
 
 import { DEFAULT_LOCALE } from '@spectrum-charts/constants';
 import { getLocale } from '@spectrum-charts/locales';
-import { BigNumberNumberType } from '@spectrum-charts/vega-spec-builder';
+import { BigNumberNumberType, ChartData } from '@spectrum-charts/vega-spec-builder';
+
+export const getBigNumberDelta = (data: ChartData[], deltaKey: string): number | undefined => {
+  const value = data.at(-1)?.[deltaKey];
+  return typeof value === 'number' ? value : undefined;
+};
+
+export const formatBigNumberDelta = (value: number, numberLocale?: NumberLocale): string => {
+  const locale = numberLocale ?? getLocale(DEFAULT_LOCALE).number;
+  if (!locale) {
+    throw new Error('Unable to resolve number locale');
+  }
+
+  const formatter = numberFormatLocale(locale);
+  const formattedValue = formatter.format('.1f')(Math.abs(value));
+  const sign = value > 0 ? '+' : value < 0 ? '-' : '';
+
+  return `${sign}${formattedValue}%`;
+};
 
 export const formatBigNumber = (
   value: number,
